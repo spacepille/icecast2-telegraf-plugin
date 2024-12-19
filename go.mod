@@ -1,0 +1,1 @@
+module "icecast2-telegraf-plugin"
