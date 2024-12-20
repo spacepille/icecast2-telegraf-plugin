@@ -4,7 +4,17 @@ go 1.23.0
 
 toolchain go1.23.4
 
-require github.com/influxdata/telegraf v1.33.0
+require (
+	github.com/influxdata/telegraf v1.33.0
+	github.com/oschwald/geoip2-golang v1.11.0
+)
+
+require (
+	github.com/gookit/color v1.5.4 // indirect
+	github.com/gookit/goutil v0.6.18 // indirect
+	github.com/oschwald/maxminddb-golang v1.13.0 // indirect
+	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
+)
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -41,8 +51,8 @@ require (
 	go.step.sm/crypto v0.54.0 // indirect
 	golang.org/x/crypto v0.29.0 // indirect
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0 // indirect
-	golang.org/x/sys v0.27.0 // indirect
-	golang.org/x/text v0.20.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20241007155032-5fefd90f89a9 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241015192408-796eee8c2d53 // indirect
 	google.golang.org/protobuf v1.35.1 // indirect

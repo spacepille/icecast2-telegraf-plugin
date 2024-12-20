@@ -7,6 +7,7 @@ import (
 	"github.com/influxdata/telegraf/plugins/common/shim"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	_ "github.com/spacepille/icecast2-telegraf-plugin/plugins/inputs/icecast2"
 )
 
 var pollInterval = flag.Duration("poll_interval", 1*time.Second, "how often to send metrics")
@@ -31,6 +32,7 @@ func main() {
 	shim := shim.New()
 
 	if configFile != nil {
+		log.Debug().Msgf("Load config file from %s", *configFile)
 		err = shim.LoadConfig(configFile)
 		if err != nil {
 			log.Fatal().Err(err).Msg("error loading config")
@@ -38,6 +40,6 @@ func main() {
 	}
 
 	if err := shim.Run(*pollInterval); err != nil {
-		log.Fatal().Err(err).Msg("hwinfo input plugin failed")
+		log.Fatal().Err(err).Msg("icecast2 input plugin failed")
 	}
 }

@@ -1,62 +1,63 @@
 package icecast2
 
-type StatsIcecast2 struct {
-	Icestats struct {
-		Admin                   string `xml:"admin"`
-		ClientConnections       int    `xml:"client_connections"`
-		Clients                 int    `xml:"clients"`
-		Connections             int    `xml:"connections"`
-		FileConnections         int    `xml:"file_connections"`
-		Host                    string `xml:"host"`
-		ListenerConnections     int    `xml:"listener_connections"`
-		Listeners               int    `xml:"listeners"`
-		Location                string `xml:"location"`
-		ServerId                string `xml:"server_id"`
-		ServerStart             string `xml:"server_start"`
-		ServerStartIso8601      string `xml:"server_start_iso8601"`
-		SourceClientConnections int    `xml:"source_client_connections"`
-		SourceRelayConnections  int    `xml:"source_relay_connections"`
-		SourceTotalConnections  int    `xml:"source_total_connections"`
-		Sources                 int    `xml:"sources"`
-		Stats                   int    `xml:"stats"`
-		StatsConnections        int    `xml:"stats_connections"`
-		Source                  []struct {
-			Bitrate            int    `xml:"bitrate"`
-			Genre              string `xml:"genre"`
-			ListenerPeak       int    `xml:"listener_peak"`
-			Listeners          int    `xml:"listeners"`
-			Listenurl          string `xml:"listenurl"`
-			MaxListeners       string `xml:"max_listeners"`
-			Public             int    `xml:"public"`
-			ServerDescription  string `xml:"server_description"`
-			ServerName         string `xml:"server_name"`
-			ServerType         string `xml:"server_type"`
-			ServerUrl          string `xml:"server_url"`
-			SlowListeners      int    `xml:"slow_listeners"`
-			SourceIp           string `xml:"source_ip"`
-			StreamStart        string `xml:"stream_start"`
-			StreamStartIso8601 string `xml:"stream_start_iso8601"`
-			TotalBytesRead     int    `xml:"total_bytes_read"`
-			TotalBytesSent     int    `xml:"total_bytes_sent"`
-			AudioBitrate       int    `xml:"audio_bitrate,omitempty"`
-			AudioChannels      int    `xml:"audio_channels,omitempty"`
-			AudioSamplerate    int    `xml:"audio_samplerate,omitempty"`
-			IceBitrate         int    `xml:"ice-bitrate,omitempty"`
-			Subtype            string `xml:"subtype,omitempty"`
-		} `xml:"source"`
-	} `xml:"icestats"`
+import "encoding/xml"
+
+type IcecastXmlStats struct {
+	XMLName                 xml.Name `xml:"icestats"`
+	Admin                   string   `xml:"admin"`
+	ClientConnections       int      `xml:"client_connections"`
+	Clients                 int      `xml:"clients"`
+	Connections             int      `xml:"connections"`
+	FileConnections         int      `xml:"file_connections"`
+	Host                    string   `xml:"host"`
+	ListenerConnections     int      `xml:"listener_connections"`
+	Listeners               int      `xml:"listeners"`
+	Location                string   `xml:"location"`
+	ServerId                string   `xml:"server_id"`
+	ServerStart             string   `xml:"server_start"`
+	ServerStartIso8601      string   `xml:"server_start_iso8601"`
+	SourceClientConnections int      `xml:"source_client_connections"`
+	SourceRelayConnections  int      `xml:"source_relay_connections"`
+	SourceTotalConnections  int      `xml:"source_total_connections"`
+	Sources                 int      `xml:"sources"`
+	Stats                   int      `xml:"stats"`
+	StatsConnections        int      `xml:"stats_connections"`
+	Source                  []struct {
+		Mount              string `xml:"mount,attr"`
+		Bitrate            int    `xml:"bitrate"`
+		Genre              string `xml:"genre"`
+		ListenerPeak       int    `xml:"listener_peak"`
+		Listeners          int    `xml:"listeners"`
+		ListenUrl          string `xml:"listenurl"`
+		MaxListeners       string `xml:"max_listeners"`
+		Public             int    `xml:"public"`
+		ServerDescription  string `xml:"server_description"`
+		ServerName         string `xml:"server_name"`
+		ServerType         string `xml:"server_type"`
+		ServerUrl          string `xml:"server_url"`
+		SlowListeners      int    `xml:"slow_listeners"`
+		SourceIp           string `xml:"source_ip"`
+		StreamStart        string `xml:"stream_start"`
+		StreamStartIso8601 string `xml:"stream_start_iso8601"`
+		TotalBytesRead     int    `xml:"total_bytes_read"`
+		TotalBytesSent     int    `xml:"total_bytes_sent"`
+		AudioBitrate       int    `xml:"audio_bitrate,omitempty"`
+		AudioChannels      int    `xml:"audio_channels,omitempty"`
+		AudioSamplerate    int    `xml:"audio_samplerate,omitempty"`
+		IceBitrate         int    `xml:"ice-bitrate,omitempty"`
+		Subtype            string `xml:"subtype,omitempty"`
+	} `xml:"source"`
 }
 
-type ClientListIcecast2 struct {
-	Icestats struct {
-		Source struct {
-			Listeners int `xml:"Listeners"`
-			Listener  []struct {
-				IP        string `xml:"IP"`
-				UserAgent string `xml:"UserAgent"`
-				Connected int    `xml:"Connected"`
-				ID        int    `xml:"ID"`
-			} `xml:"listener"`
-		} `xml:"source"`
-	} `xml:"icestats"`
+type IcecastXmlClientList struct {
+	XMLName xml.Name `xml:"icestats"`
+	Source  struct {
+		Listeners int `xml:"Listeners"`
+		Listener  []struct {
+			IP        string `xml:"IP"`
+			UserAgent string `xml:"UserAgent"`
+			Connected int    `xml:"Connected"`
+			ID        int    `xml:"ID"`
+		} `xml:"listener"`
+	} `xml:"source"`
 }
