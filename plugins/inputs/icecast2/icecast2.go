@@ -40,9 +40,11 @@ func (col *IceastCollector) Init(plugin *IcecastInputPlugin) error {
 
 	col.url = url
 
-	err = col.openGeoIpDb()
-	if err != nil {
-		return err
+	if col.plugin.GatherListeners {
+		err = col.openGeoIpDb()
+		if err != nil {
+			return err
+		}
 	}
 
 	_, err = col.fetchStats()
@@ -90,23 +92,31 @@ func (col *IceastCollector) openGeoIpDb() error {
 	return nil
 }
 
-func (col *IceastCollector) collect(acc telegraf.Accumulator) error {
+func (col *IceastCollector) gather(acc telegraf.Accumulator) error {
 
 	stats, err := col.fetchStats()
 	if err != nil {
 		return err
 	}
 
-	col.collectServerMetrics(acc, stats)
-	col.collectSourceMetrics(acc, stats)
+	col.gatherServerMetrics(acc, stats)
+	col.gatherSourceMetrics(acc, stats)
 
-	if col.plugin.CollectListeners {
+	if col.plugin.GatherListeners {
+
+		err = col.openGeoIpDb()
+		if err != nil {
+			return err
+		}
+
 		for _, source := range stats.Source {
+
 			clientList, err := col.fetchClients(source.Mount)
 			if err != nil {
 				return err
 			}
-			err = col.collectListenerMetrics(acc, stats, source, clientList)
+
+			err = col.gatherListenerMetrics(acc, stats, source, clientList)
 			if err != nil {
 				return err
 			}
@@ -116,7 +126,7 @@ func (col *IceastCollector) collect(acc telegraf.Accumulator) error {
 	return nil
 }
 
-func (col *IceastCollector) collectListenerMetrics(
+func (col *IceastCollector) gatherListenerMetrics(
 	acc telegraf.Accumulator, stats *IcecastXmlStats,
 	source *IcecastXmlSource, clientList *IcecastXmlClientList,
 ) error {
@@ -162,7 +172,7 @@ func (col *IceastCollector) collectListenerMetrics(
 	return nil
 }
 
-func (col *IceastCollector) collectSourceMetrics(
+func (col *IceastCollector) gatherSourceMetrics(
 	acc telegraf.Accumulator, stats *IcecastXmlStats,
 ) {
 	for _, source := range stats.Source {
@@ -196,7 +206,7 @@ func (col *IceastCollector) collectSourceMetrics(
 	}
 }
 
-func (col *IceastCollector) collectServerMetrics(
+func (col *IceastCollector) gatherServerMetrics(
 	acc telegraf.Accumulator, stats *IcecastXmlStats,
 ) {
 	records := make(map[string]interface{})
