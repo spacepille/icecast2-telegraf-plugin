@@ -5,12 +5,15 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/gookit/goutil/dump"
+	"github.com/influxdata/telegraf"
 	"github.com/oschwald/geoip2-golang"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -50,8 +53,160 @@ func (col *IceastCollector) Init(plugin *IcecastInputPlugin) error {
 	return nil
 }
 
-func (col *IceastCollector) collect() error {
+func (col *IceastCollector) collect(acc telegraf.Accumulator) error {
+
+	stats, err := col.fetchStats()
+	if err != nil {
+		return err
+	}
+
+	col.collectServerMetrics(acc, stats)
+	col.collectSourceMetrics(acc, stats)
+
+	if col.plugin.CollectListeners {
+		for _, source := range stats.Source {
+			clientList, err := col.fetchClients(source.Mount)
+			if err != nil {
+				return err
+			}
+			err = col.collectListenerMetrics(acc, stats, source, clientList)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
+}
+
+func (col *IceastCollector) collectListenerMetrics(
+	acc telegraf.Accumulator, stats *IcecastXmlStats,
+	source *IcecastXmlSource, clientList *IcecastXmlClientList,
+) error {
+
+	for _, listener := range clientList.Source.Listener {
+		records := make(map[string]interface{})
+		tags := make(map[string]string)
+
+		tags["host"] = stats.Host
+		tags["mount"] = source.Mount[1:] // without leading slash
+		tags["ip"] = listener.IP
+		tags["user_agent"] = listener.UserAgent
+
+		// counters
+		records["connected"] = listener.Connected
+
+		if col.geoip != nil {
+
+			ip := net.ParseIP(listener.IP)
+
+			city, err := col.geoip.City(ip)
+			if err != nil {
+				return err
+			}
+
+			tags["continent_code"] = city.Continent.Code
+			tags["country_code"] = city.Country.IsoCode
+			tags["postal_code"] = city.Postal.Code
+
+			if col.plugin.Geoip2Language != "" {
+				tags["continent_name"] = city.Continent.Names[col.plugin.Geoip2Language]
+				tags["country_name"] = city.Country.Names[col.plugin.Geoip2Language]
+				tags["city_name"] = city.City.Names[col.plugin.Geoip2Language]
+			}
+
+			records["latitude"] = city.Location.Latitude
+			records["longitude"] = city.Location.Longitude
+		}
+
+		acc.AddFields("icecast_listener", records, tags)
+	}
+
+	return nil
+}
+
+func (col *IceastCollector) collectSourceMetrics(
+	acc telegraf.Accumulator, stats *IcecastXmlStats,
+) {
+	for _, source := range stats.Source {
+		records := make(map[string]interface{})
+		tags := make(map[string]string)
+
+		tags["host"] = stats.Host
+		tags["mount"] = source.Mount[1:] // without leading slash
+		tags["genre"] = source.Genre
+		tags["listen_url"] = source.ListenUrl
+		tags["server_name"] = source.ServerName
+		tags["server_description"] = source.ServerDescription
+		tags["server_type"] = source.ServerType
+		tags["server_url"] = source.ServerUrl
+		tags["source_ip"] = source.SourceIp
+
+		// counters
+		records["listeners"] = source.Listeners
+		records["listener_peak"] = source.ListenerPeak
+		records["slow_listeners"] = source.SlowListeners
+
+		// Todo: check if it works
+		startTime, _ := time.Parse(time.RFC3339, source.StreamStartIso8601)
+		records["stream_start"] = startTime
+
+		// accumulating counters
+		records["total_bytes_read"] = source.TotalBytesRead
+		records["total_bytes_sent"] = source.TotalBytesSent
+
+		acc.AddFields("icecast_source", records, tags)
+	}
+}
+
+func (col *IceastCollector) collectServerMetrics(
+	acc telegraf.Accumulator, stats *IcecastXmlStats,
+) {
+	records := make(map[string]interface{})
+	tags := make(map[string]string)
+
+	tags["admin"] = stats.Admin
+	tags["host"] = stats.Host
+	tags["location"] = stats.Location
+	tags["server_id"] = stats.ServerId
+
+	// counters
+	records["clients"] = stats.Clients
+	records["listeners"] = stats.Listeners
+	records["sources"] = stats.Sources
+	records["stats"] = stats.Stats
+
+	// Todo: check if it works
+	startTime, _ := time.Parse(time.RFC3339, stats.ServerStartIso8601)
+	records["server_start"] = startTime
+
+	// accumulating counters
+	records["client_connections"] = stats.ClientConnections
+	records["file_connections"] = stats.FileConnections
+	records["listener_connections"] = stats.ListenerConnections
+	records["source_client_connections"] = stats.SourceClientConnections
+	records["source_relay_connections"] = stats.SourceRelayConnections
+	records["source_total_connections"] = stats.SourceTotalConnections
+	records["stats_connections"] = stats.StatsConnections
+
+	acc.AddFields("icecast_server", records, tags)
+}
+
+func (col *IceastCollector) fetchClients(mount string) (*IcecastXmlClientList, error) {
+	var icecastClientList IcecastXmlClientList
+	if data, err := col.fetchRaw("listclients?mount=" + mount); err != nil {
+		return nil, err
+	} else {
+		if err := xml.Unmarshal(data, &icecastClientList); err != nil {
+			return nil, err
+		}
+	}
+
+	if zerolog.GlobalLevel() == zerolog.DebugLevel {
+		dump.P(icecastClientList)
+	}
+
+	return &icecastClientList, nil
 }
 
 func (col *IceastCollector) fetchStats() (*IcecastXmlStats, error) {
@@ -65,8 +220,9 @@ func (col *IceastCollector) fetchStats() (*IcecastXmlStats, error) {
 		}
 	}
 
-	//log.Debug().Msgf("Send request to %s", urlString)
-	dump.P(icecastStats)
+	if zerolog.GlobalLevel() == zerolog.DebugLevel {
+		dump.P(icecastStats)
+	}
 
 	return &icecastStats, nil
 }

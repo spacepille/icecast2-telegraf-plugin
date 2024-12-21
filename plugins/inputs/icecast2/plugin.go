@@ -18,6 +18,7 @@ type IcecastInputPlugin struct {
 	ResponseTimeout  config.Duration `toml:"response_timeout"`
 	CollectListeners bool            `toml:"collect_listeners"`
 	Geoip2Path       string          `toml:"geoip2_path"`
+	Geoip2Language   string          `toml:"geoip2_language"`
 
 	pluginVersion   string
 	iceastCollector *IceastCollector
@@ -31,6 +32,7 @@ func init() {
 			Password:         "hackme",
 			ResponseTimeout:  config.Duration(time.Second * 5),
 			CollectListeners: true,
+			Geoip2Language:   "en",
 			pluginVersion:    pluginVersion(),
 		}
 	})
@@ -63,13 +65,13 @@ func (input *IcecastInputPlugin) Description() string {
 
 func (input *IcecastInputPlugin) Gather(acc telegraf.Accumulator) (err error) {
 	log.Debug().Msg("Gathering metrics...")
-	defer log.Debug().Msg("Done gathering metrics")
 
-	err = input.iceastCollector.collect()
+	err = input.iceastCollector.collect(acc)
 	if err != nil {
 		return
 	}
 
+	log.Debug().Msg("Done gathering metrics")
 	return
 }
 
