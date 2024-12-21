@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/gookit/goutil/dump"
@@ -18,9 +19,10 @@ import (
 )
 
 type IceastCollector struct {
-	plugin *IcecastInputPlugin
-	geoip  *geoip2.Reader
-	url    *url.URL
+	plugin      *IcecastInputPlugin
+	geoIpReader *geoip2.Reader
+	geoIpInfo   os.FileInfo
+	url         *url.URL
 }
 
 func newIceastCollector() *IceastCollector {
@@ -28,16 +30,8 @@ func newIceastCollector() *IceastCollector {
 }
 
 func (col *IceastCollector) Init(plugin *IcecastInputPlugin) error {
-	col.plugin = plugin
 
-	if plugin.Geoip2Path != "" {
-		db, err := geoip2.Open(plugin.Geoip2Path)
-		if err != nil {
-			//log.Fatal().Err(err).Msg("Unable to open GeopIP2 mmdb file")
-			return err
-		}
-		col.geoip = db
-	}
+	col.plugin = plugin
 
 	url, err := url.ParseRequestURI(plugin.Url)
 	if err != nil {
@@ -46,9 +40,52 @@ func (col *IceastCollector) Init(plugin *IcecastInputPlugin) error {
 
 	col.url = url
 
-	if _, err := col.fetchStats(); err != nil {
+	err = col.openGeoIpDb()
+	if err != nil {
 		return err
 	}
+
+	_, err = col.fetchStats()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (col *IceastCollector) openGeoIpDb() error {
+
+	if col.plugin.Geoip2Path == "" {
+		return nil
+	}
+
+	fileInfo, err := os.Stat(col.plugin.Geoip2Path)
+	if err != nil {
+		return err
+	}
+
+	if col.geoIpReader != nil {
+		// check if geopip file changed
+		if !fileInfo.ModTime().Equal(col.geoIpInfo.ModTime()) {
+			return nil
+		}
+		// check if change is older than 5 minutes
+		if !fileInfo.ModTime().Add(time.Minute * 5).Before(time.Now()) {
+			return nil
+		}
+		// close geoip file
+		_ = col.geoIpReader.Close()
+		col.geoIpReader = nil
+	}
+
+	// open geopip file
+	db, err := geoip2.Open(col.plugin.Geoip2Path)
+	if err != nil {
+		return err
+	}
+
+	col.geoIpInfo = fileInfo
+	col.geoIpReader = db
 
 	return nil
 }
@@ -96,11 +133,11 @@ func (col *IceastCollector) collectListenerMetrics(
 		// counters
 		records["connected"] = listener.Connected
 
-		if col.geoip != nil {
+		if col.geoIpReader != nil {
 
 			ip := net.ParseIP(listener.IP)
 
-			city, err := col.geoip.City(ip)
+			city, err := col.geoIpReader.City(ip)
 			if err != nil {
 				return err
 			}
