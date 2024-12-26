@@ -122,8 +122,8 @@ External plugins have their own configuration files. The path to the file is def
     - `country_code` &nbsp;-&nbsp; *requires geoip2 db*
     - `postal_code` &nbsp;-&nbsp; *requires geoip2 db*
     - `continent_name` &nbsp;-&nbsp; *requires geoip2 db and geoip2 language*
-    - `country_name` &nbsp;-&nbsp; *requires geoip2 db and geoip2 language
-    - `city_name` &nbsp;-&nbsp; *requires geoip2 db and geoip2 language
+    - `country_name` &nbsp;-&nbsp; *requires geoip2 db and geoip2 language*
+    - `city_name` &nbsp;-&nbsp; *requires geoip2 db and geoip2 language*
   - fields:
     - `connected`
     - `latitude` &nbsp;-&nbsp; *requires geoip2 db*
