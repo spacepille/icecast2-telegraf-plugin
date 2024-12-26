@@ -197,7 +197,7 @@ func (col *IceastCollector) gatherSourceMetrics(
 
 		// Todo: check if it works
 		startTime, _ := time.Parse(time.RFC3339, source.StreamStartIso8601)
-		records["stream_start"] = startTime
+		records["stream_start"] = startTime.UnixNano()
 
 		// accumulating counters
 		records["total_bytes_read"] = source.TotalBytesRead
@@ -226,7 +226,7 @@ func (col *IceastCollector) gatherServerMetrics(
 
 	// Todo: check if it works
 	startTime, _ := time.Parse(time.RFC3339, stats.ServerStartIso8601)
-	records["server_start"] = startTime
+	records["server_start"] = startTime.UnixNano()
 
 	// accumulating counters
 	records["client_connections"] = stats.ClientConnections
