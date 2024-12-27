@@ -36,7 +36,7 @@ Reference the executable and config in your `telegraf.conf` using the `execd` in
 
 ```toml
 [[inputs.execd]]
-  command = ["/path/to/icecast2-telegraf-plugin(.exe)", "-config", "/path/to/icecast2-telegraf-config.toml"]
+  command = ["/path/to/icecast2-telegraf-plugin(.exe)", "-config", "/path/to/icecast2-telegraf-config.conf"]
 ```
 
 More documentation on using Telegraf external plugins can be found [here](https://github.com/influxdata/telegraf/blob/master/docs/EXTERNAL_PLUGINS.md).
