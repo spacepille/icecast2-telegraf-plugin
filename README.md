@@ -4,7 +4,7 @@ A telegraph plugin to gather information from an Icecast 2.4 or 2.5 server.
 
 ## Download the binary
 
-Simply download the binary from the [latest release](https://github.com/spacepille/icecast2-telegraf-plugin/releases).
+Download the binary from the [latest release](https://github.com/spacepille/icecast2-telegraf-plugin/releases).
 
 
 ## Build From Source
