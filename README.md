@@ -32,7 +32,7 @@ go build -o icecast2-telegraf-plugin.exe cmd/main.go
 ```
 
 ## Usage
-Reference the executable and config in your `telegraf.conf` using the `execd` input
+Reference the executable and config in your `telegraf.conf` using the `execd` input plugin
 
 ```toml
 [[inputs.execd]]
