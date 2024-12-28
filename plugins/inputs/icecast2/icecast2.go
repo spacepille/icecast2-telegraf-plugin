@@ -138,12 +138,12 @@ func (col *IceastCollector) gatherListenerMetrics(
 
 		tags["host"] = stats.Host
 		tags["mount"] = source.Mount[1:] // without leading slash
-		tags["ip"] = listener.IP
 		tags["user_agent"] = listener.UserAgent
 
 		// counters
-		records["connected"] = listener.Connected
 		records["id"] = listener.ID
+		records["ip"] = listener.IP
+		records["connected"] = listener.Connected
 
 		if col.geoIpReader != nil {
 

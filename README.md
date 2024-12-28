@@ -116,7 +116,6 @@ External plugins have their own configuration files. The path to the file is def
   - tags:
     - `host`
     - `mount`
-    - `ip`
     - `user_agent`
     - `continent_code` &nbsp;-&nbsp; *requires geoip2 db*
     - `country_code` &nbsp;-&nbsp; *requires geoip2 db*
@@ -126,6 +125,7 @@ External plugins have their own configuration files. The path to the file is def
     - `city_name` &nbsp;-&nbsp; *requires geoip2 db and geoip2 language*
   - fields:
     - `id`
+    - `ip`
     - `connected`
     - `latitude` &nbsp;-&nbsp; *requires geoip2 db*
     - `longitude` &nbsp;-&nbsp; *requires geoip2 db*
