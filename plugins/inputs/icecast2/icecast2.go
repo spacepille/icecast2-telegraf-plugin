@@ -143,6 +143,7 @@ func (col *IceastCollector) gatherListenerMetrics(
 
 		// counters
 		records["connected"] = listener.Connected
+		records["id"] = listener.ID
 
 		if col.geoIpReader != nil {
 
